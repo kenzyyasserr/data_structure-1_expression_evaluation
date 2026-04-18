@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+#include <ctype.h>
 
 typedef struct Node
 {
@@ -108,7 +110,7 @@ char* infixTopostfix(char *infix)
             pop(operators);
         }
 
-        //check if the token is an operator, token[1] == '\0' means the token is a single character
+        //checking for single characters
         else if (token[1] == '\0' &&
                  (token[0] == '+' || token[0] == '-' || token[0] == '*' ||
                   token[0] == '/' || token[0] == '%' || token[0] == '^'))
@@ -116,7 +118,7 @@ char* infixTopostfix(char *infix)
             while (!isEmpty(operators) &&
                     peek(operators) != '(' &&
                     (precedence(peek(operators)) > precedence(token[0]) ||
-                     (precedence(peek(operators)) == precedence(token[0]) && token[0] != '^')))
+                    (precedence(peek(operators)) == precedence(token[0]) && token[0] != '^')))
             {
                 postfix[j++] = pop(operators);
                 postfix[j++] = ' ';
@@ -138,12 +140,69 @@ char* infixTopostfix(char *infix)
         postfix[j++] = pop(operators);
         postfix[j++] = ' ';
     }
-    postfix[j - 1] = '\0';
+    postfix[j - 1] = '\0';      //maybe postfix[j] = '\0';
     free(operators);
     return postfix;
 }
 
+float evaluation(char op, char n1, char n2)
+{
+    if (op == '^')
+        return pow(n1,n2);
+    
+    if (op == '*')
+        return n1*n2;
+    
+    if (op == '/')
+        return n1/n2;
+    
+    if (op == '%')
+        return fmod(n1,n2);
+    
+    if (op == '+')
+        return n1+n2;
+    
+    if (op == '-')
+        return n1-n2;
+    
+    return 0;
+}
+
+float evaluatePostfix(char *postfix)
+{
+    Stack *operation = initialize();
+    char *token = strtok(postfix, " ");
+    int i=0;
+    float value, n1, n2;
+
+    while (token != NULL)
+    {
+        if (isdigit(token[i]))
+            push(operation,token[i]-'0');   //coverting from ASCII to digits
+        else
+        {
+            n2 = pop(operation);
+            n1 = pop(operation);
+            value = evaluation(token[i],n1,n2);
+            push(operation,value);
+        }
+        token = strtok(NULL, " ");
+    }
+    value = pop(operation);
+    return value;
+}
+
 int main()
 {
+    char *str = malloc(100);
 
+    printf("Enter a string: ");
+    fgets(str, 100, stdin);
+
+    char *postfix = infixTopostfix(str);
+    printf("\nYour expression: %s\n", str);
+    printf("Postfix equivalent: %s\n", postfix);
+    printf("Its vale: %.3f\n", evaluatePostfix(postfix));
+
+    return 0;
 }
