@@ -145,7 +145,7 @@ char* infixTopostfix(char *infix)
     return postfix;
 }
 
-float evaluation(char op, char n1, char n2)
+float evaluation(char op, float n1, float n2)
 {
     if (op == '^')
         return pow(n1,n2);
@@ -172,20 +172,21 @@ float evaluatePostfix(char *postfix)
 {
     Stack *operation = initialize();
     char *token = strtok(postfix, " ");
-    int i=0;
     float value, n1, n2;
 
     while (token != NULL)
     {
-        if (isdigit(token[i]))
-            push(operation,token[i]-'0');   //coverting from ASCII to digits
-        else
+        if (token[1] == '\0' &&
+            (token[0] == '+' || token[0] == '-' || token[0] == '*' ||
+             token[0] == '/' || token[0] == '%' || token[0] == '^'))
         {
             n2 = pop(operation);
             n1 = pop(operation);
-            value = evaluation(token[i],n1,n2);
+            value = evaluation(token[0],n1,n2);
             push(operation,value);
         }
+        else
+            push(operation, atof(token));
         token = strtok(NULL, " ");
     }
     value = pop(operation);
@@ -193,16 +194,23 @@ float evaluatePostfix(char *postfix)
 }
 
 int main()
-{
-    char *str = malloc(100);
+{   
+    while(1)
+    {
+    char str[100];
+    char original[100];
 
     printf("Enter a string: ");
-    fgets(str, 100, stdin);
+    fgets(str, sizeof(str), stdin);
+    if (strlen(str) > 0 && str[strlen(str) - 1] == '\n')
+        str[strlen(str) - 1] = '\0';
+    strcpy(original, str);
 
     char *postfix = infixTopostfix(str);
-    printf("\nYour expression: %s\n", str);
-    printf("Postfix equivalent: %s\n", postfix);
-    printf("Its vale: %.3f\n", evaluatePostfix(postfix));
+    printf("\nPostfix equivalent: %s\n", postfix);
+    printf("Its value: %.3f\n", evaluatePostfix(postfix));
+    printf("--------------------------------\n\n");
+    }
 
     return 0;
 }
